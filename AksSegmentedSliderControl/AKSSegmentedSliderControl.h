@@ -45,6 +45,7 @@
 @property (nonatomic, assign) CGGradientRef gradientForeground;
 @property (nonatomic, assign) float strokeSizeForeground;
 @property (nonatomic, retain) UIColor *strokeColorForeground;
+@property (nonatomic, retain) UIColor *disabledBackgroundColor;
 @property (nonatomic, assign) float radiusCircle;
 @property (nonatomic, assign) id<AKSSegmentedSliderControlDelegate> delegate;
 

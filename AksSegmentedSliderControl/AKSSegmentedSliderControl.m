@@ -8,13 +8,17 @@
 
 #import "AKSSegmentedSliderControl.h"
 
+@interface AKSSegmentedSliderControl () <UIGestureRecognizerDelegate>
+
+@end
+
 @implementation AKSSegmentedSliderControl
 
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
     if (self) {
         [self setBackgroundColor:[UIColor clearColor]];
-
+        
         firstTimeOnly = TRUE;
         _spaceBetweenPoints = 40.0;
         _numberOfPoints = 5.0;
@@ -29,72 +33,95 @@
         _moveFinalIndex = 0;
         _currentIndex = 0;
         _touchEnabled = YES;
-
+        
         _strokeColorForeground = [UIColor colorWithWhite:0.3 alpha:1.0];
         _strokeSizeForeground = 1.0;
-
+        
         CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-
+        
         NSArray *gradientColors = [NSArray arrayWithObjects:
                                    (id)[UIColor whiteColor].CGColor,
                                    (id)[UIColor colorWithWhite : 0.793 alpha : 1.000].CGColor, nil];
         CGFloat gradientLocations[] = { 0, 1 };
         _gradientForeground = CGGradientCreateWithColors(colorSpace, (__bridge CFArrayRef)gradientColors, gradientLocations);
-
+        
         _positionPoints = [NSMutableArray array];
-
+        
         CGColorSpaceRelease(colorSpace);
-
-        UIImage *imageToUse = [UIImage imageNamed:@"holder"];
-        holderView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, imageToUse.size.width, imageToUse.size.height)];
-        [holderView setImage:imageToUse];
+        
+        UIImageView *bgView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
+        bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        bgView.userInteractionEnabled = YES;
+        [self addSubview:bgView];
+        [self bringSubviewToFront:bgView];
+        
+        holderView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 10, 10)];
+        holderView.backgroundColor = [UIColor whiteColor];
+        holderView.layer.cornerRadius = 5;
         [self addSubview:holderView];
         [self bringSubviewToFront:holderView];
         [holderView setUserInteractionEnabled:TRUE];
         [holderView setCenter:CGPointZero];
-        [self addGestureRecognizer:[[UIPanGestureRecognizer alloc]initWithTarget:self action:@selector(handlePanGesture:)]];
+        
+        self.userInteractionEnabled = YES;
+        
+        UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
+        panGesture.delegate = self;
+        [self addGestureRecognizer:panGesture];
+        
+        UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
+        tapGesture.delegate = self;
+        [self addGestureRecognizer:tapGesture];
     }
-
+    
     return self;
 }
 
 #pragma mark -
 #pragma mark Drawing
 
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    self.spaceBetweenPoints = (CGRectGetWidth(self.bounds)  - (_numberOfPoints * _radiusPoint * 2) - _radiusPoint) / (_numberOfPoints - 1);
+    [self backgroundPath];
+    [self moveToIndex:self.currentIndex];
+}
+
 - (void)drawRect:(CGRect)rect {
     _context = UIGraphicsGetCurrentContext();
     _drawPath = [self backgroundPath];
-
+    
     [_strokeColor setStroke];
-
+    
     CGContextSaveGState(_context);
     CGContextSetShadowWithColor(_context, _shadowSize, _shadowBlur, _shadowColor.CGColor);
     [_drawPath setLineWidth:_strokeSize];
     [_drawPath fill];
     [_drawPath stroke];
     [_drawPath addClip];
-
-
+    
+    
     CGRect drawingRect = [self bounds];
-
+    
     CGPoint center;
-
+    
     if (CGPointEqualToPoint([holderView center], CGPointZero)) {
         center = [[_positionPoints objectAtIndex:_currentIndex]CGPointValue];
     } else {
         center = [holderView center];
     }
-
+    
     drawingRect  = CGRectMake(drawingRect.origin.x, drawingRect.origin.y, center.x, drawingRect.size.height);
-    [self fillRect:drawingRect withColor:[UIColor orangeColor].CGColor onContext:_context];
-
+    [self fillRect:drawingRect withColor:self.tintColor.CGColor onContext:_context];
+    
     drawingRect  = CGRectMake(drawingRect.origin.x + center.x, drawingRect.origin.y, self.frame.size.width, drawingRect.size.height);
-    [self fillRect:drawingRect withColor:[UIColor whiteColor].CGColor onContext:_context];
-
+    [self fillRect:drawingRect withColor:self.disabledBackgroundColor.CGColor onContext:_context];
+    
     CGContextRestoreGState(_context);
-
+    
     if (firstTimeOnly) [holderView setCenter:[[_positionPoints objectAtIndex:_currentIndex]CGPointValue]];
-
+    
     firstTimeOnly = FALSE;
 }
 
@@ -106,16 +133,16 @@
 
 - (UIBezierPath *)backgroundPath {
     [_positionPoints removeAllObjects];
-
+    
     UIBezierPath *path = [[UIBezierPath alloc] init];
-
+    
     float angle = _heightLine / 2.0 / _radiusPoint;
-
+    
     for (int i = 0; i < (_numberOfPoints - 2) * 2 + 2; i++) {
         int pointNbr = (i >= _numberOfPoints) ? (_numberOfPoints - 2) - (i - _numberOfPoints) : i;
-
+        
         CGPoint centerPoint = CGPointMake(_radiusPoint + _spaceBetweenPoints * pointNbr + _radiusPoint * 2.0 * pointNbr + _strokeSize, _radiusPoint + _strokeSize);
-
+        
         if (i == 0) {
             [_positionPoints addObject:[NSValue valueWithCGPoint:centerPoint]];
             [path addArcWithCenter:centerPoint radius:_radiusPoint startAngle:angle endAngle:angle * -1.0 clockwise:YES];
@@ -134,32 +161,45 @@
             [path addLineToPoint:CGPointMake(centerPoint.x - _radiusPoint - _spaceBetweenPoints - ((i == (_numberOfPoints - 2) * 2 + 1) ? (_radiusPoint * (1.0 - cosf(angle))) : 0), centerPoint.y + _heightLine / 2.0)];
         }
     }
-
+    
     return path;
 }
 
 #pragma mark -
 #pragma mark User touch
 
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    [super touchesEnded:touches withEvent:event];
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer
+{
+    return NO;
+}
 
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    if ([gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
+        CGPoint translation = [(UIPanGestureRecognizer *)gestureRecognizer translationInView:gestureRecognizer.view.superview];
+        return fabs(translation.x) > fabs(translation.y);
+    }
+    return YES;
+}
+
+- (void)handleTapGesture:(UITapGestureRecognizer *)gesture
+{
     if (_touchEnabled) {
-        CGPoint touchPoint = [[touches anyObject] locationInView:self];
-
+        CGPoint touchPoint = [gesture locationInView:self];
+        
         float x = touchPoint.x;
         x -= _strokeSize;
-
+        
         for (int i = 0; i < [_positionPoints count]; i++) {
             CGPoint point = [[_positionPoints objectAtIndex:i] CGPointValue];
-
+            
             double diggerence  = fabs(point.x - x);
-
-            if (diggerence <= _radiusPoint) {
+            
+            if (diggerence <= _radiusPoint * 3) {
                 if ([_delegate respondsToSelector:@selector(timeSlider:didSelectPointAtIndex:)]) {
                     [_delegate timeSlider:self didSelectPointAtIndex:i];
                 }
-
+                
                 [self moveToIndex:i];
                 return;
             }
@@ -171,20 +211,20 @@
     if (_touchEnabled) {
         CGPoint location = [recogniser locationInView:self];
         location.y = holderView.center.y;
-
+        
         CGPoint leftMargin = [self getMostLeftPossibleLocation];
         CGPoint rightMargin = [self getMostRightPossibleLocation];
-
+        
         if ((location.x >= leftMargin.x) && (location.x <= rightMargin.x)) {
             [holderView setCenter:location];
         }
-		else if(location.x <= leftMargin.x){
+        else if(location.x <= leftMargin.x){
             [holderView setCenter:leftMargin];
-		}
-		else if(location.x >= rightMargin.x){
+        }
+        else if(location.x >= rightMargin.x){
             [holderView setCenter:rightMargin];
-		}
-
+        }
+        
         if ([recogniser state] == UIGestureRecognizerStateEnded) {
             [self updatePositions];
         }
@@ -195,24 +235,24 @@
 - (void)updatePositions {
     CGPoint nearestLeft  = [self getNearestLeftPossibleLocation];
     CGPoint nearestRight = [self getNearestRightPossibleLocation];
-
+    
     if ((holderView.center.x - nearestLeft.x) < (nearestRight.x - holderView.center.x))
-		[holderView setCenter:nearestLeft];
+        [holderView setCenter:nearestLeft];
     else
-		[holderView setCenter:nearestRight];
-
-
+        [holderView setCenter:nearestRight];
+    
+    
     float x = holderView.center.x;
     x -= _strokeSize;
-
+    
     for (int i = 0; i < [_positionPoints count]; i++) {
         CGPoint point = [[_positionPoints objectAtIndex:i] CGPointValue];
-
+        
         if (fabs(point.x - x) <= _radiusPoint) {
             if ([_delegate respondsToSelector:@selector(timeSlider:didSelectPointAtIndex:)]) {
                 [_delegate timeSlider:self didSelectPointAtIndex:i];
             }
-
+            
             [self moveToIndex:i];
             return;
         }
@@ -228,7 +268,7 @@
             if (CGPointEqualToPoint(location, CGPointZero)) {
                 location = point;
             }
-
+            
             if (difference > (holderView.center.x - point.x)) {
                 difference = holderView.center.x - point.x;
                 location = point;
@@ -247,7 +287,7 @@
             if (CGPointEqualToPoint(location, CGPointZero)) {
                 location = point;
             }
-
+            
             if (difference > (point.x - holderView.center.x)) {
                 difference = point.x - holderView.center.x;
                 location = point;
@@ -274,7 +314,7 @@
 
 - (CGPoint)getMostRightPossibleLocation {
     static CGPoint mostRightFound;
-
+    
     if (CGPointEqualToPoint(mostRightFound, CGPointZero)) {
         for (int i = 0; i < [_positionPoints count]; i++) {
             CGPoint point = [[_positionPoints objectAtIndex:i] CGPointValue];
@@ -294,9 +334,9 @@
 - (void)moveToIndex:(int)index {
     _moveFinalIndex = index;
     _currentIndex = index;
-
+    
     if ([_positionPoints count] > index) [holderView setCenter:[[_positionPoints objectAtIndex:_currentIndex]CGPointValue]];
-
+    
     [self setNeedsDisplay];
 }
 
@@ -346,23 +386,19 @@
 }
 
 - (void)setRadiusPoint:(float)radiusPoint {
-    if (_radiusCircle > radiusPoint - 4) {
-        radiusPoint = _radiusCircle + 4;
-    }
-
     _radiusPoint = radiusPoint;
     [self setNeedsDisplay];
 }
 
 - (void)setNumberOfPoints:(float)numberOfPoints {
     float minNumberOfPoints = (_currentIndex + 1) > 2 ? (_currentIndex + 1) : 2;
-
+    
     if (numberOfPoints < minNumberOfPoints) {
         _numberOfPoints = minNumberOfPoints;
     } else {
         _numberOfPoints = (int)numberOfPoints;
     }
-
+    
     [self setNeedsDisplay];
 }
 
@@ -370,16 +406,12 @@
     if (heightLine > _radiusPoint * 2) {
         heightLine = _radiusPoint * 2;
     }
-
+    
     _heightLine = heightLine;
     [self setNeedsDisplay];
 }
 
 - (void)setRadiusCircle:(float)radiusCircle {
-    if (radiusCircle > _radiusPoint - 4) {
-        radiusCircle = _radiusPoint - 4;
-    }
-
     _radiusCircle = radiusCircle;
     [self setNeedsDisplay];
 }

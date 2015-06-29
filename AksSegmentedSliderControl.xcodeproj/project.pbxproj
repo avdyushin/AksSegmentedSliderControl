@@ -18,8 +18,6 @@
 		5CCD52AF177EBFD50000636D /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5CCD52AE177EBFD50000636D /* Default-568h@2x.png */; };
 		5CCD52B7177EBFFE0000636D /* AKSSegmentedSliderControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CCD52B6177EBFFE0000636D /* AKSSegmentedSliderControl.m */; };
 		5CCD52BB177EC0600000636D /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5CCD52BA177EC0600000636D /* DemoViewController.m */; };
-		5CCD52BE177EC1B00000636D /* holder.png in Resources */ = {isa = PBXBuildFile; fileRef = 5CCD52BC177EC1B00000636D /* holder.png */; };
-		5CCD52BF177EC1B00000636D /* holder@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5CCD52BD177EC1B00000636D /* holder@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,8 +38,6 @@
 		5CCD52B6177EBFFE0000636D /* AKSSegmentedSliderControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AKSSegmentedSliderControl.m; sourceTree = "<group>"; };
 		5CCD52B9177EC0600000636D /* DemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoViewController.h; sourceTree = "<group>"; };
 		5CCD52BA177EC0600000636D /* DemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DemoViewController.m; sourceTree = "<group>"; };
-		5CCD52BC177EC1B00000636D /* holder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = holder.png; sourceTree = "<group>"; };
-		5CCD52BD177EC1B00000636D /* holder@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "holder@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,8 +111,6 @@
 		5CCD52B8177EC0010000636D /* Slide Control */ = {
 			isa = PBXGroup;
 			children = (
-				5CCD52BC177EC1B00000636D /* holder.png */,
-				5CCD52BD177EC1B00000636D /* holder@2x.png */,
 				5CCD52B5177EBFFE0000636D /* AKSSegmentedSliderControl.h */,
 				5CCD52B6177EBFFE0000636D /* AKSSegmentedSliderControl.m */,
 			);
@@ -178,8 +172,6 @@
 				5CCD52AB177EBFD50000636D /* Default.png in Resources */,
 				5CCD52AD177EBFD50000636D /* Default@2x.png in Resources */,
 				5CCD52AF177EBFD50000636D /* Default-568h@2x.png in Resources */,
-				5CCD52BE177EC1B00000636D /* holder.png in Resources */,
-				5CCD52BF177EC1B00000636D /* holder@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,6 +302,7 @@
 				5CCD52B4177EBFD50000636D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
