@@ -9,4 +9,4 @@ Features:
 * Autolayouted inside given frame
 * Supports autorotation
 
-!["SliderControl.gif"]("SliderControl.gif")
+![SliderControl.gif](SliderControl.gif)
