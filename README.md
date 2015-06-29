@@ -9,4 +9,4 @@ Features:
 * Autolayouted inside given frame
 * Supports autorotation
 
-<img src="https://raw.github.com/avdyushin/AksSegmentedSliderControl/master/SliderControl.gif"/>
+!["SliderControl.gif"]("SliderControl.gif")
